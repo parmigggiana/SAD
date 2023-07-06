@@ -1,0 +1,8 @@
+version: '3'
+
+services:
+  simple:
+    build: .
+    ports:
+      - 5000:8000
+    restart: unless-stopped

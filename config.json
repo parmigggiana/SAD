@@ -1,0 +1,4 @@
+{
+    "containers_n": 3,
+    "base_ip": "10.60.{id}.1"
+}
