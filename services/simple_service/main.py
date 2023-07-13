@@ -5,11 +5,11 @@ flagsDB = "valid_flags.txt"
 
 
 @app.get("/addFlag")
-def addFlag(flag: str):
+def addFlag(user: str, flag: str):
     with open(flagsDB, "a") as fs:
         flag = flag.strip()
-        fs.write(flag + "\n")
-        return f"Saved flag {flag}"
+        fs.write(user + "\t" + flag + "\n")
+        return f"Saved flag {flag} from user {user}"
 
 
 @app.get("/flags")
