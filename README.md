@@ -4,20 +4,24 @@ I always had to wait for demos to test any changes I made and they were always b
 
 So now I made a **S**imple **A**ttack-**D**efense environment that I can use to test what I want when I want 🤯🤯🤯
 
-Note: Gameserver for inserting/checking status/validating flags is still missing
-
 # Dependencies
 
+## Sysbox
 This project relies on [sysbox](https://github.com/nestybox/sysbox) for a good Docker-in-Docker runtime
-## Debian-based:
+### Debian-based:
+Make sure your Docker is installed as system package and not snap 🤢
+```bash
+which docker
+```
+If it's snap, follow the instructions [here](https://github.com/nestybox/sysbox/blob/master/docs/developers-guide/build.md#docker-installation)
+
 ```bash
 sudo apt install sysbox
 ```
-Make sure your Docker is installed as system package and not snap 🤢
-## Other distros:
+### Other distros:
 [Check if your distro is supported](https://github.com/nestybox/sysbox/blob/master/docs/distro-compat.md). We're gonna need to build from source, but it's fairly easy.
 ```bash
-git clone --recursive https://github.com/nestybox/sysbox.git
+git clone --recursive https://github.com/nestybox/sysbox.git && cd sysbox
 ```
 ```bash
 make sysbox-static
@@ -25,7 +29,14 @@ make sysbox-static
 ```bash
 sudo make install
 ```
-
+```bash
+sudo ./scr/sysbox  
+sudo ./scr/docker-cfg --sysbox-runtime=enable 
+```
+## Python requirements
+```bash
+pip install -r requirements.txt
+```
 # Configuration
 Modify the config.json file according to your needs.
 Add services to the `services/` dir. 
@@ -37,7 +48,7 @@ The valid entrypoints are, in order of priority:
 
 The first entrypoint found will be used to start the service and everything else will be ignored
 
-# Run
+# Running
 ```bash
 python3 runSAD.py start
 ```
