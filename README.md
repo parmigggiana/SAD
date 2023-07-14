@@ -7,14 +7,14 @@ So now I made a **S**imple **A**ttack-**D**efense environment that I can use to 
 # Dependencies
 
 ## Sysbox
-This project relies on [sysbox](https://github.com/nestybox/sysbox) for a good Docker-in-Docker runtime
+This project relies on [sysbox](https://github.com/nestybox/sysbox) for a Docker-in-Docker runtime
 ### Debian-based:
 Make sure your Docker is installed as system package and not snap 🤢
 ```bash
 which docker
 ```
-If it's snap, follow the instructions [here](https://github.com/nestybox/sysbox/blob/master/docs/developers-guide/build.md#docker-installation)
-
+If it's snap, follow the instructions [here](https://github.com/nestybox/sysbox/blob/master/docs/developers-guide/build.md#docker-installation).
+Then, run
 ```bash
 sudo apt install sysbox
 ```
@@ -38,22 +38,26 @@ sudo ./scr/docker-cfg --sysbox-runtime=enable
 pip install -r requirements.txt
 ```
 # Configuration
-Modify the config.json file according to your needs.
+Edit the config.toml file according to your needs.
 Add services to the `services/` dir. 
 Each service should be a directory containing at least one well-known entrypoint.
 The valid entrypoints are, in order of priority:
 1. deploy.sh
 2. docker-compose.yml
-2. docker-compose.yaml
+3. docker-compose.yaml
+4. Dockerfile
 
 The first entrypoint found will be used to start the service and everything else will be ignored
 
-# Running
+# Usage
 ```bash
 python3 runSAD.py start
 ```
 ```bash
 python3 runSAD.py stop
+```
+```bash
+python3 runSAD.py restart
 ```
 should be pretty self-descriptive 🧐
 

@@ -4,6 +4,7 @@ import pickle
 import sys
 from pathlib import Path
 
+import tomllib
 import docker
 
 try:
@@ -46,8 +47,8 @@ def start():
 
     try:
         global gameserver_container, team_containers, network, created_network
-        with open("config.json", "r") as fs:
-            config: dict = json.load(fs)
+        with open("config.toml", "r") as fs:
+            config: dict = tomllib.load(fs)
         targets = [
             config["base_ip"].format(id=id)
             for id in range(1, config["containers_n"] + 1)

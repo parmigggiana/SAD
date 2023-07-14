@@ -1,0 +1,6 @@
+containers_n=3
+
+subnet = '10.0.0.0/8'
+base_ip= '10.60.{id}.1'
+gameserver_ip = '10.10.0.1'
+gateway = '10.0.0.1'
