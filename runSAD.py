@@ -74,7 +74,7 @@ if __name__ == "__main__":
             )
             print("Building team vm image")
             team_vm_image = client.images.build(
-                path="services",
+                path="team_vm",
                 tag="team_vm",
                 quiet=False,
                 rm=True,

@@ -9,7 +9,7 @@ RUN (echo 'root'; echo 'root') | passwd root \
 COPY start_script.sh /usr/bin
 COPY services_starter.service /lib/systemd/system/
 
-COPY . .
+COPY ../services/* .
 
 RUN chmod +x /usr/bin/start_script.sh &&                               \
     ln -sf /lib/systemd/system/services_starter.service                    \
