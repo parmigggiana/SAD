@@ -133,17 +133,9 @@ if __name__ == "__main__":
                 )
                 team_containers.append(container)
 
+            # Pre-building services
+            # To have this work properly we need a function that scans docker-compose files and extract all the relevant information for pre-building the images
             """
-            print("Starting registry")
-            registry_container = client.containers.run(
-                image="registry:2",
-                name=f"Registry",
-                hostname=f"local_registry",
-                auto_remove=True,
-                detach=True,
-                stdout=True,
-                stderr=True,
-            )
             for service_dir in Path("services").iterdir():
                 if not service_dir.is_dir():
                     continue
@@ -151,12 +143,11 @@ if __name__ == "__main__":
                 service_image = client.images.build(
                     path=service_dir,
                     quiet=False,
-                    tag=f"local_registry:5000/{name}",
+                    tag=name,
                     rm=True,
                     pull=True,
                 )
             """
-
             # Save objects to file
             with open(save_file_path, "wb") as fs:
                 pickle.dump(
@@ -173,6 +164,9 @@ if __name__ == "__main__":
             raise
         else:
             print("Done")
+            print(
+                "Starting the services may take a while! Please be patient while the containers build"
+            )
 
     elif sys.argv[1] == "stop":
         # Load objects from file
