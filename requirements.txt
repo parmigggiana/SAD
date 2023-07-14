@@ -1,1 +1,1 @@
-requests
+docker==6.1.3

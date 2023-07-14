@@ -68,6 +68,3 @@ Eh. Probably. Seems like a bad idea. Do what you want, but keep in mind that thi
 I did my best to have the team's containers run as close as possible as VMs but no matter what a container is not a VM.
 
 </div>
-
-<!-- BADGIE TIME -->
-<!-- END BADGIE TIME -->
