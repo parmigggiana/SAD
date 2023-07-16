@@ -27,7 +27,7 @@ def saveFlag(
 def claimFlag(
     flag: str, token: str
 ) -> Literal["Flag already claimed", "Error", "Accepted"]:
-    if not db.collection.count_documents({"_id": flag}, limit=1):
+    if not db.flags.count_documents({"_id": flag}, limit=1):
         return "Invalid Flag"
 
     try:
