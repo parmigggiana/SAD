@@ -27,10 +27,13 @@ def saveFlag(
 def claimFlag(
     flag: str, token: str
 ) -> Literal["Flag already claimed", "Error", "Accepted"]:
+    if not db.collection.count_documents({"_id": flag}, limit=1):
+        return "Invalid Flag"
+
     try:
         db.claims.insert_one({"_id": {"flag": flag, "token": token}})
     except DuplicateKeyError:
-        return "Flag already claimed"
+        return "Flag Already Claimed"
     except Exception as e:
         ic(e)
         return "Error"
