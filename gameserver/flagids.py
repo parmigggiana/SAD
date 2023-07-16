@@ -1,3 +1,0 @@
-import json
-
-flagIds: dict ={}

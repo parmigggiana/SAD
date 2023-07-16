@@ -1,11 +1,10 @@
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile, Form, Request
+from typing import Annotated, Literal, Optional
+
+from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import JSONResponse, Response
-from flagids import flagIds
-from typing import Annotated
 
 app = FastAPI()
 import db
-
 from fastapi import FastAPI
 
 tags_metadata = [
@@ -15,6 +14,10 @@ tags_metadata = [
         Any other key-value pair will be added to the database in the `flagId` field""",
     },
 ]
+
+
+validFlagResponse = Literal["Flag already claimed", "Error", "Accepted"]
+
 
 app = FastAPI(openapi_tags=tags_metadata)
 
@@ -30,50 +33,45 @@ async def claim_flags(flags_json: Request) -> JSONResponse:
     if not isinstance(flags, list):
         return JSONResponse(f"`flags` should be a list, not a {type(flags)}", 422)
 
-    response = {}
+    response: dict[str, validFlagResponse] = {}
     for flag in flags:
-        r = db.claimFlag(flag, token)
-        response += {flag: r}
+        r: validFlagResponse = db.claimFlag(flag, token)
+        response[flag] = r
+
     return JSONResponse(response, 200)
 
 
 @app.get("/flagIds")
-def get_flag_ids(service: str = "ALL", team_id: str = "ALL") -> JSONResponse:
-    if service == "ALL" and team_id == "ALL":
-        services = list(flagIds.keys())
+def get_flag_ids(
+    service: Optional[str] = None, team_id: Optional[str] = None
+) -> JSONResponse:
+    if service is None and team_id is None:
         return JSONResponse(
             content={
                 "Error": "Please specify a service or a team_id (or both)",
-                "Valid Services": services,
-                "Valid Teams": list(flagIds[services[0]].keys()),
+                "Valid Services": db.getServices(),
+                "Valid Teams": db.getTeams(),
             },
             status_code=200,
         )
 
-    if service == "ALL":
-        ret = {sid_k: sid_v[team_id] for sid_k, sid_v in flagIds.items()}
-
-    if team_id == "ALL":
-        ret = flagIds[service]
-
-    return JSONResponse(ret, 200)
+    flagIds = db.getFlagIds(service, team_id)
+    return JSONResponse(flagIds, 200)
 
 
 @app.post("/addFlag", tags=["addFlag"])
 async def add_flag(form_json: Request) -> JSONResponse:
     form: dict = await form_json.json()
-    flag: str = form["flag"]
-    service: str = form["service"]
-    form.pop("flag")
-    form.pop("service")
+    try:
+        flag: str = form.pop("flag")
+        service: str = form.pop("service")
+        team: str = form.pop("team")
+    except KeyError:
+        return JSONResponse(
+            {"Error": "The request must contain `flag`, `service` and `team`"}, 422
+        )
 
     flagId = form
-    result = db.saveFlag(flag, service, flagId)
+    result = db.saveFlag(flag, service, team, flagId)
 
-    if flagId:
-        return JSONResponse(
-            {"flag": flag, "service": service, "flagId": flagId, "Accepted": result},
-            200,
-        )
-    else:
-        return JSONResponse({"flag": flag, "service": service, "Response": result}, 200)
+    return JSONResponse({"flag": flag, "service": service, "Response": result}, 200)

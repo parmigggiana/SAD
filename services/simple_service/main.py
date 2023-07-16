@@ -13,12 +13,12 @@ def addFlag(user: str, flag: str):
 
 
 @app.get("/flags")
-def getFlags() -> list[str]:
+def getFlags() -> list[dict[str, str]]:
     with open(flagsDB, "r") as fs:
         flags = fs.readlines()
-        return [f.strip() for f in flags]
+        return [{f.strip().split("\t")[0]: f.strip().split("\t")[1]} for f in flags]
 
 
 @app.get("/test")
 def test():
-    return {"response": "It works~"}
+    return {"Response": "It works~"}
