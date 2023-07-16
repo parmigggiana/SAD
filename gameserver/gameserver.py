@@ -1,12 +1,26 @@
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile, Form, Request
 from fastapi.responses import JSONResponse, Response
 from flagids import flagIds
+from typing import Annotated
 
 app = FastAPI()
+import db
+
+from fastapi import FastAPI
+
+tags_metadata = [
+    {
+        "name": "addFlag",
+        "description": """The request body must be a json-encoded dictionary, with at least the keys `flag` and `service`.
+        Any other key-value pair will be added to the database in the `flagId` field""",
+    },
+]
+
+app = FastAPI(openapi_tags=tags_metadata)
 
 
 @app.put("/flags")
-def check_flags():
+def claim_flags():
     pass
 
 
@@ -30,3 +44,23 @@ def get_flag_ids(service: str = "ALL", team_id: str = "ALL") -> JSONResponse:
         ret = flagIds[service]
 
     return JSONResponse(ret, 200)
+
+
+@app.post("/addFlag", tags=["addFlag"])
+async def add_flag(form_json: Request) -> JSONResponse:
+    form: dict = await form_json.json()
+    flag: str = form["flag"]
+    service: str = form["service"]
+    form.pop("flag")
+    form.pop("service")
+
+    flagId = form
+    result = db.saveFlag(flag, service, flagId)
+
+    if flagId:
+        return JSONResponse(
+            {"flag": flag, "service": service, "flagId": flagId, "Accepted": result},
+            200,
+        )
+    else:
+        return JSONResponse({"flag": flag, "service": service, "Response": result}, 200)

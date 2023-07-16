@@ -1,1 +1,4 @@
 fastapi
+pymongo
+python-multipart
+icecream
