@@ -1,6 +1,5 @@
 import random
 import string
-import sys
 
 import requests
 
@@ -11,8 +10,8 @@ def add_flag(target_ip: str):
     flag = generate_flag()
     user = generate_user()
 
-    data = {"flag": flag, "service": "simple_service2", "team": target_ip, "user": user}
-    response = requests.post(url=f"http://10.10.0.1:8081/addFlag", json=data)
+    data = {"flag": flag, "service": "simple_service", "team": target_ip, "user": user}
+    response = requests.post(url=f"http://10.10.0.1:8080/addFlag", json=data)
     if response.json()["Response"] == "Accepted":
         requests.get(
             f"http://{target_ip}:5000/addFlag", params={"user": user, "flag": flag}
@@ -29,4 +28,4 @@ def generate_user() -> str:
 
 
 if __name__ == "__main__":
-    add_flag("10.60.2.1")
+    add_flag("10.60.1.1")
