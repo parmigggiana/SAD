@@ -1,11 +1,12 @@
-import json
 import os
 import pickle
 import sys
 from pathlib import Path
 
 import tomllib
+import requests
 import docker
+from pymongo import MongoClient
 
 try:
     from icecream import ic
@@ -18,7 +19,7 @@ client = docker.from_env()
 
 
 def stop():
-    global gameserver_container, team_containers, network, created_network
+    global gameserver_container, team_containers, network, created_network, mongodb_container
 
     try:
         # Load objects from file
@@ -29,15 +30,37 @@ def stop():
             team_containers_ids,
             network_id,
             created_network,
+            mongodb_container_id,
         ) = loaded_objects
 
-        gameserver_container = client.containers.get(gameserver_container_id)
-        team_containers = [client.containers.get(t_id) for t_id in team_containers_ids]
-        network = client.networks.get(network_id)
+        try:
+            gameserver_container = client.containers.get(gameserver_container_id)
+        except requests.exceptions.HTTPError:
+            pass
 
-    except Exception:
+        try:
+            team_containers = [
+                client.containers.get(t_id) for t_id in team_containers_ids
+            ]
+        except requests.exceptions.HTTPError:
+            pass
+
+        try:
+            network = client.networks.get(network_id)
+        except requests.exceptions.HTTPError:
+            pass
+
+        try:
+            mongodb_container = client.containers.get(mongodb_container_id)
+        except requests.exceptions.HTTPError:
+            pass
+
+    except FileNotFoundError:
         print("Can't find resources to remove")
-    exit_handler()
+    except Exception:
+        raise
+    else:
+        exit_handler()
 
 
 def start():
@@ -46,8 +69,8 @@ def start():
         exit()
 
     try:
-        global gameserver_container, team_containers, network, created_network
-        with open("config.toml", "r") as fs:
+        global gameserver_container, team_containers, network, created_network, mongodb_container
+        with open("config.toml", "rb") as fs:
             config: dict = tomllib.load(fs)
         targets = [
             config["base_ip"].format(id=id)
@@ -56,7 +79,7 @@ def start():
 
         print(targets)
         print("Building gameserver image")
-        gameserver_image = client.images.build(
+        gameserver_image, _ = client.images.build(
             path="gameserver",
             tag="gameserver",
             quiet=False,
@@ -64,7 +87,7 @@ def start():
             pull=True,
         )
         print("Building team vm image")
-        team_vm_image = client.images.build(
+        team_vm_image, _ = client.images.build(
             path=".",
             dockerfile="team_vm/vm.Dockerfile",
             tag="team_vm",
@@ -94,13 +117,25 @@ def start():
             )
             created_network = True
 
-        print("Starting Gameserver")
-        gameserver_container = client.containers.run(
-            image=gameserver_image[0].id,
-            name="Gameserver",
-            hostname="gameserver",
+        print("Starting DB")
+        mongodb_container = client.containers.run(
+            image="mongo:jammy",
+            name="mongo",
+            hostname="mongo",
             auto_remove=True,
             detach=True,
+            stdout=True,
+            stderr=True,
+        )
+        network.connect(mongodb_container)
+
+        print("Starting Gameserver")
+        gameserver_container = client.containers.run(
+            image=gameserver_image,
+            name="Gameserver",
+            hostname="gameserver",
+            detach=True,
+            auto_remove=True,
             stdout=True,
             stderr=True,
         )
@@ -110,7 +145,7 @@ def start():
         team_containers = []
         for team in range(1, config["containers_n"] + 1):
             container = client.containers.run(
-                image=team_vm_image[0].id,
+                image=team_vm_image.id,
                 name=f"Team_{team}",
                 hostname=f"team_{team}",
                 runtime="sysbox-runc",
@@ -145,6 +180,7 @@ def start():
                     [t.id for t in team_containers],
                     network.id,
                     created_network,
+                    mongodb_container.id,
                 ),
                 fs,
             )
@@ -163,13 +199,16 @@ def start():
 
 def exit_handler():
     try:
-        print("Quitting")
-        print(
-            "Press CTRL+C again if you want to kill me immediately but be wary of dangling resources."
-        )
+        print("Press CTRL+C to force quitting but be wary of dangling resources.")
         try:
             print("Removing the gameserver's container...")
             gameserver_container.stop()
+        except Exception:
+            pass
+
+        try:
+            print("Removing the database's container...")
+            mongodb_container.stop()
         except Exception:
             pass
 
@@ -195,8 +234,8 @@ def exit_handler():
         except Exception:
             pass
     except KeyboardInterrupt:
-        os.remove(save_file_path)
-        raise
+        pass
+    os.remove(save_file_path)
 
 
 if __name__ == "__main__":

@@ -51,13 +51,13 @@ The first entrypoint found will be used to start the service and everything else
 
 # Usage
 ```bash
-python3 runSAD.py start
+python3 SAD.py start
 ```
 ```bash
-python3 runSAD.py stop
+python3 SAD.py stop
 ```
 ```bash
-python3 runSAD.py restart
+python3 SAD.py restart
 ```
 should be pretty self-descriptive 🧐
 
