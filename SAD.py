@@ -6,7 +6,6 @@ from pathlib import Path
 import tomllib
 import requests
 import docker
-from pymongo import MongoClient
 
 try:
     from icecream import ic
