@@ -5,7 +5,7 @@ from fastapi.responses import JSONResponse, Response
 
 app = FastAPI()
 import db
-from fastapi import FastAPI
+from fastapi import FastAPI, Header
 
 tags_metadata = [
     {
@@ -23,19 +23,17 @@ app = FastAPI(openapi_tags=tags_metadata)
 
 
 @app.put("/flags")
-async def claim_flags(flags_json: Request) -> JSONResponse:
-    request: dict = await flags_json.json()
-    flags: list = request.pop("flags")
-    token: str = request.pop("token")
+async def claim_flags(
+    flags_json: Request, x_team_token: Annotated[str, Header()]
+) -> JSONResponse:
+    flags: list = await flags_json.json()
 
-    if request:
-        print(request)
     if not isinstance(flags, list):
         return JSONResponse(f"`flags` should be a list, not a {type(flags)}", 422)
 
     response: dict[str, validFlagResponse] = {}
     for flag in flags:
-        r: validFlagResponse = db.claimFlag(flag, token)
+        r: validFlagResponse = db.claimFlag(flag, x_team_token)
         response[flag] = r
 
     return JSONResponse(response, 200)
