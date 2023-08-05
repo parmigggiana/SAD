@@ -183,6 +183,9 @@ def start():
                 ),
                 fs,
             )
+    except docker.errors.BuildError:
+        print("[ERROR] Unable to connect to dockerhub, please check your connection.")
+        exit_handler()
     except Exception:
         exit_handler()
         raise
@@ -234,7 +237,10 @@ def exit_handler():
             pass
     except KeyboardInterrupt:
         pass
-    os.remove(save_file_path)
+    try:
+        os.remove(save_file_path)
+    except FileNotFoundError:
+        pass
 
 
 if __name__ == "__main__":
